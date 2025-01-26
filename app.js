@@ -9,6 +9,9 @@ const session = require('express-session');
 const {Datastore} = require('@google-cloud/datastore');
 const {DatastoreStore} = require('@google-cloud/connect-datastore');
 const InitApp = require('./modules/lib/init');
+const SocketServer = require('./modules/logic/socketserver');
+
+
 
 
 var app = express();
@@ -107,7 +110,11 @@ InitApp.loadEnvironmentVariables().then(()=>{
 
   app.listen(port)
 
-  Initialization.initializeDatabase();
+  Initialization.initializeDatabase().then(()=>{
+    SocketServer.runNotificationServer();
+  })
+
+
 
   console.log(process.env.DBHOST)
   console.log(process.env.DBNAME)
