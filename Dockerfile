@@ -12,8 +12,6 @@ RUN rm -rf node_modules
 # Install dependencies
 RUN npm install
 
-# Rebuild sqlite3 (if necessary)
-RUN npm rebuild sqlite3 
 
 # Install PM2 globally
 RUN npm install -g pm2
