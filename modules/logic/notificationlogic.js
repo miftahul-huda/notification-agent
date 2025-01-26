@@ -1,4 +1,5 @@
-const NotificationModel = require("../models/notification")
+const { all } = require("../../app");
+const fs = require('fs');
 
 class NotificationLogic 
 {
@@ -26,17 +27,18 @@ class NotificationLogic
             {
                 return { success: false, message: "provide message"}
             }
+            
 
-            const toFullName = "";
-            const model = require("../models/user");
-            const user = await model.findOne({
-                where: {
-                    username: body.to.username
+            let toFullName = "";
+            let users = fs.readFileSync("users.json")
+            users = JSON.parse(users);
+            users.map((user)=>{
+                if(user.username == body.to.username && user.app == body.app)
+                {
+                    toFullName = user.fullName;
                 }
-            });
+            })
 
-            if(user != null)
-                toFullName = user.fullName;
 
             const o = {
                 from: body.from.username,
@@ -44,11 +46,15 @@ class NotificationLogic
                 to: body.to.username,
                 toFullName: toFullName,
                 message: body.message,
-                isDelivered: false
+                isDelivered: false,
+                app: body.app   
             }
 
-            let result = await NotificationModel.create(o);
-            return { success: true, payload: result }
+            let allData = fs.readFileSync("notifications.json")
+            allData = JSON.parse(allData);
+            allData.push(o);
+            fs.writeFileSync("notifications.json", JSON.stringify( allData));
+            return { success: true, payload: o }
 
         }
         catch(e)
@@ -59,3 +65,5 @@ class NotificationLogic
         }
     }
 }
+
+module.exports = NotificationLogic;

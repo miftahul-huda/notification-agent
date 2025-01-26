@@ -12,6 +12,7 @@ class NotificationRouter{
 
             const body = req.body;
             let logic = router.logic;
+            console.log(logic)
             logic.notify(body).then(function (result)
             {
                 res.send(result);

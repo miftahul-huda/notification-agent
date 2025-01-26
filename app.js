@@ -18,7 +18,6 @@ var app = express();
 
 InitApp.loadEnvironmentVariables().then(()=>{
 
-  var Initialization = require("./initialization")
 
   const port = process.env.APPLICATION_PORT;
   const appTitle = process.env.APPLICATION_TITLE;
@@ -110,9 +109,9 @@ InitApp.loadEnvironmentVariables().then(()=>{
 
   app.listen(port)
 
-  Initialization.initializeDatabase().then(()=>{
-    SocketServer.runNotificationServer();
-  })
+  //Initialization.initializeDatabase().then(()=>{
+  SocketServer.runNotificationServer();
+  //})
 
 
 
