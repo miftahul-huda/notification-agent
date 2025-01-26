@@ -236,7 +236,7 @@ class SocketServer
         allData.map((data)=>{
             if(data.isDelivered == true)
             {
-                let secs = me.secondsBetweenDates(notif.deliveredDate, new Date());
+                let secs = me.secondsBetweenDates(data.deliveredDate, new Date());
                 console.log("Secs")
                 console.log(secs)
                 if(data.deliveredDate != null && secs >= 60)
