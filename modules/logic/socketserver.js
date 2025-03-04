@@ -7,6 +7,7 @@ const WebSocket = require('ws');
 class SocketServer
 {
     
+
     static runNotificationServer()
     {
         console.log("Run notification server")
@@ -107,36 +108,23 @@ class SocketServer
 
     static async registerUser(socket, reg)
     {
-        this.sockets[reg.username + "_" + reg.app] = socket;
-        const u = { username: reg.username, fullName: reg.fullName, app: reg.app }
+        this.sockets[reg.username] = socket;
+        const u = { username: reg.username, fullName: reg.fullName }
 
-        /*
-        const model = require("../models/usermodel");
 
-        await model.destroy({
-            where: {
-                [Op.and] :
-                [
-                    {
-                        username: reg.username
-                    },
-                    {
-                        app: reg.app
-                    }
-                ]
-            }
-        });
 
-        await model.create(u);
-        */
-
+        if(fs.existsSync("users.json") == false)
+        {
+            console.log("no notifications.json file. Create a new one")
+            fs.writeFileSync("users.json", JSON.stringify([]));
+        }
 
         let allData = fs.readFileSync("users.json")
         allData = JSON.parse(allData);
         let indexes = [];
         let idx = 0;
         allData.map((user)=>{
-            if(user.username == reg.username && user.app == reg.app)
+            if(user.username == reg.username)
             {
                 indexes.push(idx);
             }
@@ -157,15 +145,12 @@ class SocketServer
     {
         console.log("acknowledge")
         console.log(reg)
-        /*
-        const id = reg.id;
-        const model = require("../models/notificationmodel");
-        await model.destroy({
-            where: {
-                id: id
-            }
-        });
-        */
+
+        if(fs.existsSync("notifications.json") == false)
+        {
+            console.log("no notifications.json file. Create a new one")
+            fs.writeFileSync("notifications.json", JSON.stringify([]));
+        }
         let allData = fs.readFileSync("notifications.json")
         allData = JSON.parse(allData);
         let indexes = [];
@@ -190,16 +175,13 @@ class SocketServer
     static async sendNotifications()
     {
         this.isSending = true;
-        /*
-        const model = require("../models/notificationmodel");
 
-        //Get notifications that is not delievered
-        const notifications = await model.findAll({
-            where: {
-                isDelivered: false
-            }
-        });
-        */
+
+        if(fs.existsSync("notifications.json") == false)
+        {
+            console.log("no notifications.json file. Create a new one")
+            fs.writeFileSync("notifications.json", JSON.stringify([]));
+        }
 
         let allData = fs.readFileSync("notifications.json")
         allData = JSON.parse(allData);
@@ -219,24 +201,22 @@ class SocketServer
     {
         let me = this;
         this.isSendingAck = true;
-        /*
-        const model = require("../models/notificationmodel");
 
-        //Get notifications that is not delievered
-        const notifications = await model.findAll({
-            where: {
-                isDelivered: true
-            }
-        });
-        */
+        if(fs.existsSync("notifications.json") == false)
+        {
+            console.log("no notifications.json file. Create a new one")
+            fs.writeFileSync("notifications.json", JSON.stringify([]));
+        }
 
         let allData = fs.readFileSync("notifications.json")
         allData = JSON.parse(allData);
+        console.log("allData")
+        console.log(allData)
         let newAllData = [];
         allData.map((data)=>{
             if(data.isDelivered == true)
             {
-                let secs = me.secondsBetweenDates(data.deliveredDate, new Date());
+                let secs = me.secondsBetweenDates(new Date(data.deliveredDate), new Date());
                 console.log("Secs")
                 console.log(secs)
                 if(data.deliveredDate != null && secs >= 60)
@@ -260,42 +240,28 @@ class SocketServer
 
             //Get socket associated to target username
             const to = notification.to;
-            const socket = this.sockets[to + "_" + notification.app];
+            const socket = this.sockets[to.username];
 
             //If socket is not null, send the notification
             if(socket != null)
             {
                 //assemble notification message
-                const notificationToSend = {
-                    id: notification.id,
-                    from: {
-                        username: notification.from,
-                        fullName: notification.fromFullName
-                    },
-                    to: {
-                        username: notification.to,
-                        fullName: notification.toFullName
-                    }
-                    ,
-                    message: notification.message,
-                    date: notification.createdAt,
-                    type: "notification",
-                    app: notification.app
-                }
+                console.log("Notification")
+                console.log(notification)
+                const notificationToSend = notification
+                delete notificationToSend.isDelivered;
 
                 try
                 {
                     //Send the notification message
                     socket.send(JSON.stringify(notificationToSend));
 
-                    //Update notification in sqlite, set it has been delivered
-                    /*
-                    await model.update({ isDelivered: true, deliveredDate: new Date() }, {
-                        where: {
-                            id: notification.id
-                        }
-                    });  
-                    */
+
+                    if(fs.existsSync("notifications.json") == false)
+                    {
+                        console.log("no notifications.json file. Create a new one")
+                        fs.writeFileSync("notifications.json", JSON.stringify([]));
+                    }
                    
                     let notifications = fs.readFileSync("notifications.json");
                     notifications = JSON.parse(notifications);

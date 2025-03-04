@@ -3,6 +3,16 @@ const fs = require('fs');
 
 class NotificationLogic 
 {
+    static generateRandomString(length) {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+    }
+
     static async notify(body)
     {
         try
@@ -27,13 +37,23 @@ class NotificationLogic
             {
                 return { success: false, message: "provide message"}
             }
+            if(body.app == null)
+            {
+                return { success: false, message: "provide app source and app target"}
+            }
             
 
             let toFullName = "";
+            if(fs.existsSync("users.json") == false)
+            {
+                console.log("no notifications.json file. Create a new one")
+                fs.writeFileSync("users.json", JSON.stringify([]));
+            }
+
             let users = fs.readFileSync("users.json")
             users = JSON.parse(users);
             users.map((user)=>{
-                if(user.username == body.to.username && user.app == body.app)
+                if(user.username == body.to.username)
                 {
                     toFullName = user.fullName;
                 }
@@ -41,13 +61,19 @@ class NotificationLogic
 
 
             const o = {
-                from: body.from.username,
-                fromFullName: body.from.fullName,
-                to: body.to.username,
-                toFullName: toFullName,
+                id: this.generateRandomString(20),
+                from: body.from,
+                to: body.to,
                 message: body.message,
                 isDelivered: false,
+                createdAt: Date.now(),
                 app: body.app   
+            }
+
+            if(fs.existsSync("notifications.json") == false)
+            {
+                console.log("no notifications.json file. Create a new one")
+                fs.writeFileSync("notifications.json", JSON.stringify([]));
             }
 
             let allData = fs.readFileSync("notifications.json")
