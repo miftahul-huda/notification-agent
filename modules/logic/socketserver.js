@@ -210,8 +210,8 @@ class SocketServer
 
         let allData = fs.readFileSync("notifications.json")
         allData = JSON.parse(allData);
-        console.log("allData")
-        console.log(allData)
+        
+        
         let newAllData = [];
         allData.map((data)=>{
             if(data.isDelivered == true)
